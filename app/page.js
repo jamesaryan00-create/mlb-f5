@@ -1,5 +1,16 @@
-'use client';
+id #21262d", borderTop:"3px solid #388bfd", borderRadius:"50%", animation:"spin'use client';
 import { useState, useEffect } from "react";
+
+async function fetchOddsSharkData() {
+  try {
+    const res = await fetch('/api/scrape-oddsshark');
+    if (!res.ok) throw new Error('Failed to fetch OddsShark data');
+    return res.json();
+  } catch (e) {
+    console.error('OddsShark fetch error:', e);
+    return null;
+  }
+}
 
 const EDGE_COLORS = {
   "Strong Lean": { bg: "#0f3d2a", border: "#22c55e", text: "#4ade80", badge: "#166534" },
@@ -39,11 +50,13 @@ export default function MLBF5Live() {
   const [step, setStep] = useState("select");
   const [log, setLog] = useState([]);
   const [result, setResult] = useState(null);
+  const [oddsSharkData, setOddsSharkData] = useState(null);
 
   const addLog = (msg) => setLog(prev => [...prev, msg]);
 
   useEffect(() => {
     loadGames();
+    fetchOddsSharkData().then(data => setOddsSharkData(data));
   }, []);
 
   const loadGames = async () => {
