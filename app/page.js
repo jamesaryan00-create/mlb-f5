@@ -89,99 +89,6 @@ export default function MLBF5Live() {
 
   const analyze = async () => {
     if (!selectedGame) return;
-
-cat > ~/mlb-f5/app/page.js << 'PAGEFILE'
-'use client';
-import { useState, useEffect } from "react";
-
-function Spinner() {
-  return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "32px 0" }}>
-      <div style={{ width: 36, height: 36, border: "3px solid rgba(56, 139, 253, 0.3)", borderTop: "3px solid #00d4aa", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </div>
-  );
-}
-
-function getToday() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-}
-
-async function mlbFetch(endpoint) {
-  const MLB_API = "https://statsapi.mlb.com/api/v1";
-  const url = `${MLB_API}${endpoint}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`MLB API ${res.status}`);
-  return res.json();
-}
-
-async function fetchOddsSharkData() {
-  try {
-    const res = await fetch('/oddsshark-data.json');
-    if (!res.ok) throw new Error('Failed to fetch OddsShark data');
-    return res.json();
-  } catch (e) {
-    console.error('OddsShark fetch error:', e);
-    return null;
-  }
-}
-
-export default function MLBF5Live() {
-  const [games, setGames] = useState([]);
-  const [gamesLoading, setGamesLoading] = useState(true);
-  const [gamesError, setGamesError] = useState(null);
-  const [selectedGame, setSelectedGame] = useState(null);
-  const [step, setStep] = useState("select");
-  const [log, setLog] = useState([]);
-  const [result, setResult] = useState(null);
-  const [oddsSharkData, setOddsSharkData] = useState(null);
-
-  const addLog = (msg) => setLog(prev => [...prev, msg]);
-
-  useEffect(() => {
-    loadGames();
-    fetchOddsSharkData().then(data => setOddsSharkData(data));
-  }, []);
-
-  const loadGames = async () => {
-    setGamesLoading(true);
-    setGamesError(null);
-    try {
-      const today = getToday();
-      const data = await mlbFetch(`/schedule?sportId=1&date=${today}&gameType=R&hydrate=probablePitcher,venue,weather,team`);
-      const gamesList = (data.dates?.[0]?.games || []).map((g) => ({
-        game_pk: g.gamePk,
-        away_team: g.teams.away.team.name,
-        away_pitcher_id: g.teams.away.probablePitcher?.id || null,
-        away_pitcher_name: g.teams.away.probablePitcher?.fullName || "TBD",
-        home_team: g.teams.home.team.name,
-        home_pitcher_id: g.teams.home.probablePitcher?.id || null,
-        home_pitcher_name: g.teams.home.probablePitcher?.fullName || "TBD",
-        venue: g.venue?.name || "Unknown Park",
-        game_time: g.gameDateTime ? new Date(g.gameDateTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) + " ET" : "TBA",
-      }));
-      setGames(gamesList);
-      if (gamesList.length > 0) setSelectedGame(gamesList[0]);
-    } catch (e) {
-      setGamesError(e.message);
-    }
-    setGamesLoading(false);
-  };
-
-  const fetchPitcherStats = async (pitcherId, pitcherName) => {
-    try {
-      const data = await mlbFetch(`/people/${pitcherId}?hydrate=stats(group=pitching,type=season,season=2026,gameType=R)`);
-      const stat = data.people?.[0]?.stats?.[0]?.splits?.[0]?.stat || {};
-      const person = data.people?.[0] || {};
-      return { name: person.fullName || pitcherName, era: stat.era ? Number(stat.era).toFixed(2) : "—", whip: stat.whip ? Number(stat.whip).toFixed(2) : "—" };
-    } catch (e) {
-      return { name: pitcherName, era: "—", whip: "—" };
-    }
-  };
-
-  const analyze = async () => {
-    if (!selectedGame) return;
     setStep("fetching");
     setLog([]);
     setResult(null);
@@ -251,15 +158,10 @@ export default function MLBF5Live() {
         .game-card.selected { border-color: #00d4aa; background: rgba(0, 212, 170, 0.08); }
         .game-matchup { font-size: 18px; font-weight: 700; margin-bottom: 1rem; color: #e6edf3; }
         .game-pitchers { font-size: 13px; color: #8b949e; margin-bottom: 1.5rem; line-height: 1.8; }
-        .pitcher-item { display: flex; justify-content: space-between; margin-bottom: 6px; }
-        .pitcher-era { color: #00d4aa; font-weight: 600; }
+        .pitcher-item { margin-bottom: 6px; }
         .game-time { font-size: 12px; color: #6e7681; margin-top: 1rem; }
         .analyze-btn { width: 100%; padding: 12px; background: #00d4aa; color: #0a1428; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 1.5rem; font-size: 14px; }
         .analyze-btn:hover { background: #00e5bb; }
-        .edge-badge { display: inline-block; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 1rem; }
-        .edge-strong { background: rgba(0, 212, 170, 0.2); color: #00d4aa; border: 1px solid rgba(0, 212, 170, 0.4); }
-        .edge-lean { background: rgba(0, 212, 170, 0.15); color: #00d4aa; }
-        .edge-too-close { background: rgba(56, 139, 253, 0.15); color: #58a6ff; }
         .result-container { background: rgba(30, 42, 66, 0.6); border: 1px solid rgba(56, 139, 253, 0.2); border-radius: 12px; padding: 2.5rem; margin-bottom: 2rem; backdrop-filter: blur(10px); }
         .result-header { margin-bottom: 2rem; }
         .result-pick { font-size: 36px; font-weight: 700; color: #00d4aa; margin-bottom: 0.5rem; }
@@ -301,12 +203,8 @@ export default function MLBF5Live() {
                     <div key={i} className={`game-card ${selectedGame?.game_pk === g.game_pk ? "selected" : ""}`} onClick={() => setSelectedGame(g)}>
                       <div className="game-matchup">{g.away_team} @ {g.home_team}</div>
                       <div className="game-pitchers">
-                        <div className="pitcher-item">
-                          <span>{g.away_pitcher_name}</span>
-                        </div>
-                        <div className="pitcher-item">
-                          <span>{g.home_pitcher_name}</span>
-                        </div>
+                        <div className="pitcher-item">{g.away_pitcher_name}</div>
+                        <div className="pitcher-item">{g.home_pitcher_name}</div>
                       </div>
                       <div className="game-time">{g.game_time}</div>
                     </div>
