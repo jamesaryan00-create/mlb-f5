@@ -1,0 +1,13 @@
+name: Scrape OddsShark
+on:
+  workflow_dispatch:
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node scripts/scrape-oddsshark.js
+      - run: git config user.email "bot@example.com" && git config user.name "Bot" && git add public/oddsshark-data.json && git commit -m "data" || true && git push
