@@ -1,0 +1,16 @@
+{
+  "pitchers": [
+    { "name": "Jack Leiter", "profit": 794 },
+    { "name": "Merrill Kelly", "profit": 701 },
+    { "name": "Carlos Rodon", "profit": 698 },
+    { "name": "Sonny Gray", "profit": 650 },
+    { "name": "Sandy Alcantara", "profit": 580 }
+  ],
+  "teams": [
+    { "name": "Yankees", "wins": 91, "losses": 50, "pushes": 21, "profit": 1036 },
+    { "name": "Brewers", "wins": 79, "losses": 51, "pushes": 32, "profit": 1695 },
+    { "name": "Rays", "wins": 75, "losses": 55, "pushes": 42, "profit": 920 },
+    { "name": "Dodgers", "wins": 88, "losses": 52, "pushes": 22, "profit": 1200 }
+  ],
+  "lastUpdated": "2026-06-17T00:00:00.000Z"
+}
