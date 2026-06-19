@@ -85,12 +85,18 @@ export default function MLBF5Live() {
     }
   };
 
+  const getTeamStats = (teamName) => {
+    if (!oddsSharkData?.teams) return null;
+    return oddsSharkData.teams.find(t => t.name.toLowerCase() === teamName.toLowerCase());
+  };
+
   const generateReasoning = (awayPitcher, homePitcher, awayTeam, homeTeam, eraDiff, confidence, side) => {
     const reasons = [];
     const risks = [];
     const awayERA = parseFloat(awayPitcher.era);
     const homeERA = parseFloat(homePitcher.era);
 
+    // ERA Analysis
     if (!isNaN(awayERA) && !isNaN(homeERA)) {
       const diff = Math.abs(eraDiff);
       if (diff > 1.0) {
@@ -104,12 +110,31 @@ export default function MLBF5Live() {
       }
     }
 
+    // Team Form Analysis
+    const teamStats = getTeamStats(side);
+    if (teamStats) {
+      const totalGames = teamStats.wins + teamStats.losses + teamStats.pushes;
+      const winRate = totalGames > 0 ? ((teamStats.wins / totalGames) * 100).toFixed(1) : 0;
+      
+      if (parseFloat(winRate) > 55) {
+        reasons.push(`Team form: ${side} ${winRate}% F5 win rate (hot)`);
+      } else if (parseFloat(winRate) < 45) {
+        risks.push(`Team form: ${side} ${winRate}% F5 win rate (cold)`);
+      }
+      
+      if (teamStats.profit > 500) {
+        reasons.push(`OddsShark: ${side} +$${teamStats.profit} YTD profit`);
+      }
+    }
+
+    // Confidence
     if (confidence >= 8) {
-      reasons.push(`High confidence score (${confidence}/10) indicates strong edge`);
+      reasons.push(`High confidence (${confidence}/10) indicates strong edge`);
     } else if (confidence < 6) {
       risks.push(`Low confidence (${confidence}/10) suggests marginal edge`);
     }
 
+    // WHIP
     if (awayPitcher.whip && awayPitcher.whip !== "—" && homePitcher.whip !== "—") {
       const awayWhip = parseFloat(awayPitcher.whip);
       const homeWhip = parseFloat(homePitcher.whip);
@@ -207,7 +232,7 @@ export default function MLBF5Live() {
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
         .stat-box { background: rgba(0, 212, 170, 0.08); border: 1px solid rgba(0, 212, 170, 0.2); border-radius: 8px; padding: 1rem; text-align: center; }
         .stat-label { font-size: 12px; color: #6e7681; margin-bottom: 8px; text-transform: uppercase; }
-        .stat-value { font-size: 22px; font-weight: 700px; }
+        .stat-value { font-size: 22px; font-weight: 700; }
         .reasoning-section { background: rgba(10, 20, 40, 0.7); border: 1px solid rgba(0, 212, 170, 0.3); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
         .reasoning-title { font-size: 14px; font-weight: 600; color: #00d4aa; margin-bottom: 1rem; }
         .reason-item { display: flex; gap: 10px; margin-bottom: 10px; font-size: 13px; }
