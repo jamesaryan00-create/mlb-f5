@@ -23,17 +23,6 @@ async function mlbFetch(endpoint) {
   return res.json();
 }
 
-async function fetchOddsSharkData() {
-  try {
-    const res = await fetch('/oddsshark-data.json');
-    if (!res.ok) throw new Error('Failed to fetch OddsShark data');
-    return res.json();
-  } catch (e) {
-    console.error('OddsShark fetch error:', e);
-    return null;
-  }
-}
-
 export default function MLBF5Live() {
   const [games, setGames] = useState([]);
   const [gamesLoading, setGamesLoading] = useState(true);
@@ -42,16 +31,24 @@ export default function MLBF5Live() {
   const [step, setStep] = useState("select");
   const [log, setLog] = useState([]);
   const [result, setResult] = useState(null);
-  const [oddsSharkData, setOddsSharkData] = useState(null);
 
   const addLog = (msg) => setLog(prev => [...prev, msg]);
+
+  const TEAM_DATA = {
+    "New York Yankees": { wins: 91, losses: 50, pushes: 21 },
+    "Milwaukee Brewers": { wins: 79, losses: 51, pushes: 32 },
+    "Tampa Bay Rays": { wins: 75, losses: 55, pushes: 42 },
+    "Los Angeles Dodgers": { wins: 88, losses: 52, pushes: 22 },
+    "Houston Astros": { wins: 85, losses: 55, pushes: 28 },
+    "Boston Red Sox": { wins: 73, losses: 60, pushes: 30 },
+    "New York Mets": { wins: 82, losses: 53, pushes: 27 },
+    "Atlanta Braves": { wins: 86, losses: 54, pushes: 23 },
+    "Seattle Mariners": { wins: 78, losses: 52, pushes: 32 },
+  };
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const osh = await fetchOddsSharkData();
-        setOddsSharkData(osh);
-        
         const today = getToday();
         const data = await mlbFetch(`/schedule?sportId=1&date=${today}&gameType=R&hydrate=probablePitcher,venue,weather,team`);
         const gamesList = (data.dates?.[0]?.games || []).map((g) => ({
@@ -87,12 +84,7 @@ export default function MLBF5Live() {
     }
   };
 
-  const getTeamStats = (teamName) => {
-    if (!oddsSharkData?.teams) return null;
-    return oddsSharkData.teams.find(t => t.name.toLowerCase() === teamName.toLowerCase());
-  };
-
-  const generateReasoning = (awayPitcher, homePitcher, awayTeam, homeTeam, eraDiff, confidence, side, teamStats) => {
+  const generateReasoning = (awayPitcher, homePitcher, awayTeam, homeTeam, eraDiff, confidence, side) => {
     const reasons = [];
     const risks = [];
     const awayERA = parseFloat(awayPitcher.era);
@@ -111,6 +103,7 @@ export default function MLBF5Live() {
       }
     }
 
+    const teamStats = TEAM_DATA[side];
     if (teamStats) {
       const totalGames = teamStats.wins + teamStats.losses + teamStats.pushes;
       const winRate = totalGames > 0 ? ((teamStats.wins / totalGames) * 100).toFixed(1) : 0;
@@ -180,8 +173,7 @@ export default function MLBF5Live() {
       const side = pitcher_edge === "away" ? selectedGame.away_team : pitcher_edge === "home" ? selectedGame.home_team : "even";
       const pick = side !== "even" ? `${side} F5 ML` : "No Bet";
 
-      const teamStats = getTeamStats(side);
-      const { reasons, risks } = generateReasoning(ap, hp, selectedGame.away_team, selectedGame.home_team, eraDiff, confidence, side, teamStats);
+      const { reasons, risks } = generateReasoning(ap, hp, selectedGame.away_team, selectedGame.home_team, eraDiff, confidence, side);
 
       setResult({ edge, side, pick, confidence, win_prob, away: { team: selectedGame.away_team, ...ap }, home: { team: selectedGame.home_team, ...hp }, venue: selectedGame.venue, game_time: selectedGame.game_time, reasons, risks });
       setStep("result");
