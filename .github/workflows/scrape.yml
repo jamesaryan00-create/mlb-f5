@@ -1,5 +1,7 @@
 name: Scrape OddsShark
 on:
+  schedule:
+    - cron: '0 0 * * *'
   workflow_dispatch:
 jobs:
   scrape:
@@ -10,4 +12,9 @@ jobs:
         with:
           node-version: '20'
       - run: node scripts/scrape-oddsshark.js
-      - run: git config user.email "bot@example.com" && git config user.name "Bot" && git add public/oddsshark-data.json && git commit -m "data" || true && git push
+      - run: |
+          git config user.email "bot@github.com"
+          git config user.name "Bot"
+          git add public/oddsshark-data.json
+          git commit -m "Update OddsShark data" || true
+          git push
