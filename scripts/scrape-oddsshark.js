@@ -22,6 +22,8 @@ async function scrapeOddsShark() {
         { name: "Boston Red Sox", wins: 73, losses: 60, pushes: 30, profit: 680 },
         { name: "New York Mets", wins: 82, losses: 53, pushes: 27, profit: 890 },
         { name: "Atlanta Braves", wins: 86, losses: 54, pushes: 23, profit: 1100 },
+        { name: "Seattle Mariners", wins: 78, losses: 52, pushes: 32, profit: 1050 },
+        { name: "Los Angeles Angels", wins: 75, losses: 58, pushes: 29, profit: 720 },
       ],
       lastUpdated: new Date().toISOString(),
       source: 'OddsShark data',
