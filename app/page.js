@@ -49,6 +49,9 @@ export default function MLBF5Live() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        const osh = await fetchOddsSharkData();
+        setOddsSharkData(osh);
+        
         const today = getToday();
         const data = await mlbFetch(`/schedule?sportId=1&date=${today}&gameType=R&hydrate=probablePitcher,venue,weather,team`);
         const gamesList = (data.dates?.[0]?.games || []).map((g) => ({
@@ -71,7 +74,6 @@ export default function MLBF5Live() {
     };
 
     loadData();
-    fetchOddsSharkData().then(data => setOddsSharkData(data));
   }, []);
 
   const fetchPitcherStats = async (pitcherId, pitcherName) => {
@@ -90,13 +92,12 @@ export default function MLBF5Live() {
     return oddsSharkData.teams.find(t => t.name.toLowerCase() === teamName.toLowerCase());
   };
 
-  const generateReasoning = (awayPitcher, homePitcher, awayTeam, homeTeam, eraDiff, confidence, side) => {
+  const generateReasoning = (awayPitcher, homePitcher, awayTeam, homeTeam, eraDiff, confidence, side, teamStats) => {
     const reasons = [];
     const risks = [];
     const awayERA = parseFloat(awayPitcher.era);
     const homeERA = parseFloat(homePitcher.era);
 
-    // ERA Analysis
     if (!isNaN(awayERA) && !isNaN(homeERA)) {
       const diff = Math.abs(eraDiff);
       if (diff > 1.0) {
@@ -110,31 +111,18 @@ export default function MLBF5Live() {
       }
     }
 
-    // Team Form Analysis
-    const teamStats = getTeamStats(side);
     if (teamStats) {
       const totalGames = teamStats.wins + teamStats.losses + teamStats.pushes;
       const winRate = totalGames > 0 ? ((teamStats.wins / totalGames) * 100).toFixed(1) : 0;
-      
-      if (parseFloat(winRate) > 55) {
-        reasons.push(`Team form: ${side} ${winRate}% F5 win rate (hot)`);
-      } else if (parseFloat(winRate) < 45) {
-        risks.push(`Team form: ${side} ${winRate}% F5 win rate (cold)`);
-      }
-      
-      if (teamStats.profit > 500) {
-        reasons.push(`OddsShark: ${side} +$${teamStats.profit} YTD profit`);
-      }
+      reasons.push(`Team form: ${side} ${winRate}% F5 win rate`);
     }
 
-    // Confidence
     if (confidence >= 8) {
       reasons.push(`High confidence (${confidence}/10) indicates strong edge`);
     } else if (confidence < 6) {
       risks.push(`Low confidence (${confidence}/10) suggests marginal edge`);
     }
 
-    // WHIP
     if (awayPitcher.whip && awayPitcher.whip !== "—" && homePitcher.whip !== "—") {
       const awayWhip = parseFloat(awayPitcher.whip);
       const homeWhip = parseFloat(homePitcher.whip);
@@ -192,7 +180,8 @@ export default function MLBF5Live() {
       const side = pitcher_edge === "away" ? selectedGame.away_team : pitcher_edge === "home" ? selectedGame.home_team : "even";
       const pick = side !== "even" ? `${side} F5 ML` : "No Bet";
 
-      const { reasons, risks } = generateReasoning(ap, hp, selectedGame.away_team, selectedGame.home_team, eraDiff, confidence, side);
+      const teamStats = getTeamStats(side);
+      const { reasons, risks } = generateReasoning(ap, hp, selectedGame.away_team, selectedGame.home_team, eraDiff, confidence, side, teamStats);
 
       setResult({ edge, side, pick, confidence, win_prob, away: { team: selectedGame.away_team, ...ap }, home: { team: selectedGame.home_team, ...hp }, venue: selectedGame.venue, game_time: selectedGame.game_time, reasons, risks });
       setStep("result");
