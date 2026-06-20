@@ -132,7 +132,6 @@ export default function MLBF5Live() {
       const winRate = totalGames > 0 ? ((teamStats.wins / totalGames) * 100).toFixed(1) : 0;
       reasons.push(`Team form: ${side} ${winRate}% F5 win rate`);
       
-      // Team risk factors
       if (parseFloat(winRate) < 45) {
         risks.push(`Cold team: ${side} F5 win rate below 45%`);
       }
@@ -191,18 +190,29 @@ export default function MLBF5Live() {
 
       if (!isNaN(awayERA) && !isNaN(homeERA)) {
         eraDiff = homeERA - awayERA;
-        if (eraDiff > 1.0) {
-          pitcher_edge = "away";
-          confidence = 7;
-          win_prob = { away: 60, home: 30, push: 10 };
-        } else if (eraDiff < -1.0) {
-          pitcher_edge = "home";
-          confidence = 7;
-          win_prob = { away: 30, home: 60, push: 10 };
-        } else if (Math.abs(eraDiff) > 0.3) {
+        
+        // More granular confidence scale
+        const diff = Math.abs(eraDiff);
+        if (diff > 1.5) {
+          confidence = 8;
+          win_prob = eraDiff > 0 ? { away: 65, home: 25, push: 10 } : { away: 25, home: 65, push: 10 };
           pitcher_edge = eraDiff > 0 ? "away" : "home";
+        } else if (diff > 1.0) {
+          confidence = 7;
+          win_prob = eraDiff > 0 ? { away: 60, home: 30, push: 10 } : { away: 30, home: 60, push: 10 };
+          pitcher_edge = eraDiff > 0 ? "away" : "home";
+        } else if (diff > 0.5) {
           confidence = 6;
-          win_prob = eraDiff > 0 ? { away: 52, home: 38, push: 10 } : { away: 38, home: 52, push: 10 };
+          win_prob = eraDiff > 0 ? { away: 54, home: 36, push: 10 } : { away: 36, home: 54, push: 10 };
+          pitcher_edge = eraDiff > 0 ? "away" : "home";
+        } else if (diff > 0.2) {
+          confidence = 5;
+          win_prob = { away: 49, home: 41, push: 10 };
+          pitcher_edge = "even";
+        } else {
+          confidence = 4;
+          win_prob = { away: 45, home: 45, push: 10 };
+          pitcher_edge = "even";
         }
       }
 
