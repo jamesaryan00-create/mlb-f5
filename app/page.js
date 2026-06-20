@@ -44,6 +44,15 @@ export default function MLBF5Live() {
     "New York Mets": { wins: 82, losses: 53, pushes: 27 },
     "Atlanta Braves": { wins: 86, losses: 54, pushes: 23 },
     "Seattle Mariners": { wins: 78, losses: 52, pushes: 32 },
+    "Los Angeles Angels": { wins: 75, losses: 58, pushes: 29 },
+    "Toronto Blue Jays": { wins: 76, losses: 56, pushes: 30 },
+    "Chicago White Sox": { wins: 71, losses: 62, pushes: 29 },
+    "Baltimore Orioles": { wins: 84, losses: 56, pushes: 22 },
+    "Tampa Bay Rays": { wins: 75, losses: 55, pushes: 42 },
+    "Kansas City Royals": { wins: 72, losses: 60, pushes: 30 },
+    "Detroit Tigers": { wins: 80, losses: 54, pushes: 28 },
+    "Minnesota Twins": { wins: 83, losses: 55, pushes: 24 },
+    "Oakland Athletics": { wins: 68, losses: 64, pushes: 30 },
   };
 
   useEffect(() => {
@@ -62,6 +71,8 @@ export default function MLBF5Live() {
           venue: g.venue?.name || "Unknown Park",
           game_time: g.gameDateTime ? new Date(g.gameDateTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) + " ET" : "TBA",
         }));
+        console.log('Teams in games:', gamesList.map(g => g.away_team + " @ " + g.home_team));
+        console.log('Available TEAM_DATA keys:', Object.keys(TEAM_DATA));
         setGames(gamesList);
         if (gamesList.length > 0) setSelectedGame(gamesList[0]);
       } catch (e) {
@@ -103,7 +114,10 @@ export default function MLBF5Live() {
       }
     }
 
+    console.log('Looking for team:', side, 'in TEAM_DATA');
     const teamStats = TEAM_DATA[side];
+    console.log('Found teamStats:', teamStats);
+    
     if (teamStats) {
       const totalGames = teamStats.wins + teamStats.losses + teamStats.pushes;
       const winRate = totalGames > 0 ? ((teamStats.wins / totalGames) * 100).toFixed(1) : 0;
