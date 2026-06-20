@@ -35,24 +35,36 @@ export default function MLBF5Live() {
   const addLog = (msg) => setLog(prev => [...prev, msg]);
 
   const TEAM_DATA = {
-    "New York Yankees": { wins: 91, losses: 50, pushes: 21 },
-    "Milwaukee Brewers": { wins: 79, losses: 51, pushes: 32 },
-    "Tampa Bay Rays": { wins: 75, losses: 55, pushes: 42 },
-    "Los Angeles Dodgers": { wins: 88, losses: 52, pushes: 22 },
-    "Houston Astros": { wins: 85, losses: 55, pushes: 28 },
-    "Boston Red Sox": { wins: 73, losses: 60, pushes: 30 },
-    "New York Mets": { wins: 82, losses: 53, pushes: 27 },
+    "Arizona Diamondbacks": { wins: 81, losses: 52, pushes: 29 },
     "Atlanta Braves": { wins: 86, losses: 54, pushes: 23 },
-    "Seattle Mariners": { wins: 78, losses: 52, pushes: 32 },
-    "Los Angeles Angels": { wins: 75, losses: 58, pushes: 29 },
-    "Toronto Blue Jays": { wins: 76, losses: 56, pushes: 30 },
-    "Chicago White Sox": { wins: 71, losses: 62, pushes: 29 },
     "Baltimore Orioles": { wins: 84, losses: 56, pushes: 22 },
-    "Tampa Bay Rays": { wins: 75, losses: 55, pushes: 42 },
-    "Kansas City Royals": { wins: 72, losses: 60, pushes: 30 },
+    "Boston Red Sox": { wins: 73, losses: 60, pushes: 30 },
+    "Chicago Cubs": { wins: 79, losses: 56, pushes: 27 },
+    "Chicago White Sox": { wins: 71, losses: 62, pushes: 29 },
+    "Cincinnati Reds": { wins: 77, losses: 58, pushes: 27 },
+    "Cleveland Guardians": { wins: 88, losses: 51, pushes: 23 },
+    "Colorado Rockies": { wins: 75, losses: 60, pushes: 27 },
     "Detroit Tigers": { wins: 80, losses: 54, pushes: 28 },
+    "Houston Astros": { wins: 85, losses: 55, pushes: 28 },
+    "Kansas City Royals": { wins: 72, losses: 60, pushes: 30 },
+    "Los Angeles Angels": { wins: 75, losses: 58, pushes: 29 },
+    "Los Angeles Dodgers": { wins: 88, losses: 52, pushes: 22 },
+    "Miami Marlins": { wins: 69, losses: 65, pushes: 28 },
+    "Milwaukee Brewers": { wins: 79, losses: 51, pushes: 32 },
     "Minnesota Twins": { wins: 83, losses: 55, pushes: 24 },
+    "New York Mets": { wins: 82, losses: 53, pushes: 27 },
+    "New York Yankees": { wins: 91, losses: 50, pushes: 21 },
     "Oakland Athletics": { wins: 68, losses: 64, pushes: 30 },
+    "Philadelphia Phillies": { wins: 87, losses: 53, pushes: 22 },
+    "Pittsburgh Pirates": { wins: 76, losses: 59, pushes: 27 },
+    "San Diego Padres": { wins: 83, losses: 55, pushes: 24 },
+    "San Francisco Giants": { wins: 80, losses: 56, pushes: 26 },
+    "Seattle Mariners": { wins: 78, losses: 52, pushes: 32 },
+    "St. Louis Cardinals": { wins: 81, losses: 54, pushes: 27 },
+    "Tampa Bay Rays": { wins: 75, losses: 55, pushes: 42 },
+    "Texas Rangers": { wins: 84, losses: 56, pushes: 22 },
+    "Toronto Blue Jays": { wins: 76, losses: 56, pushes: 30 },
+    "Washington Nationals": { wins: 74, losses: 59, pushes: 29 },
   };
 
   useEffect(() => {
@@ -71,8 +83,6 @@ export default function MLBF5Live() {
           venue: g.venue?.name || "Unknown Park",
           game_time: g.gameDateTime ? new Date(g.gameDateTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) + " ET" : "TBA",
         }));
-        console.log('Teams in games:', gamesList.map(g => g.away_team + " @ " + g.home_team));
-        console.log('Available TEAM_DATA keys:', Object.keys(TEAM_DATA));
         setGames(gamesList);
         if (gamesList.length > 0) setSelectedGame(gamesList[0]);
       } catch (e) {
@@ -114,10 +124,7 @@ export default function MLBF5Live() {
       }
     }
 
-    console.log('Looking for team:', side, 'in TEAM_DATA');
     const teamStats = TEAM_DATA[side];
-    console.log('Found teamStats:', teamStats);
-    
     if (teamStats) {
       const totalGames = teamStats.wins + teamStats.losses + teamStats.pushes;
       const winRate = totalGames > 0 ? ((teamStats.wins / totalGames) * 100).toFixed(1) : 0;
