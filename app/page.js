@@ -111,6 +111,7 @@ export default function MLBF5Live() {
     const awayERA = parseFloat(awayPitcher.era);
     const homeERA = parseFloat(homePitcher.era);
 
+    // Pitcher Analysis
     if (!isNaN(awayERA) && !isNaN(homeERA)) {
       const diff = Math.abs(eraDiff);
       if (diff > 1.0) {
@@ -124,27 +125,42 @@ export default function MLBF5Live() {
       }
     }
 
+    // Team Form
     const teamStats = TEAM_DATA[side];
     if (teamStats) {
       const totalGames = teamStats.wins + teamStats.losses + teamStats.pushes;
       const winRate = totalGames > 0 ? ((teamStats.wins / totalGames) * 100).toFixed(1) : 0;
       reasons.push(`Team form: ${side} ${winRate}% F5 win rate`);
+      
+      // Team risk factors
+      if (parseFloat(winRate) < 45) {
+        risks.push(`Cold team: ${side} F5 win rate below 45%`);
+      }
     }
 
+    // Confidence Assessment
     if (confidence >= 8) {
-      reasons.push(`High confidence (${confidence}/10) indicates strong edge`);
-    } else if (confidence < 6) {
-      risks.push(`Low confidence (${confidence}/10) suggests marginal edge`);
+      reasons.push(`Strong confidence (${confidence}/10) - excellent edge`);
+    } else if (confidence >= 7) {
+      reasons.push(`Good confidence (${confidence}/10) - solid edge`);
+    } else if (confidence >= 6) {
+      reasons.push(`Moderate confidence (${confidence}/10) - slight edge`);
+    } else {
+      risks.push(`Low confidence (${confidence}/10) - marginal edge only`);
     }
 
+    // WHIP Analysis
     if (awayPitcher.whip && awayPitcher.whip !== "—" && homePitcher.whip !== "—") {
       const awayWhip = parseFloat(awayPitcher.whip);
       const homeWhip = parseFloat(homePitcher.whip);
       if (!isNaN(awayWhip) && !isNaN(homeWhip)) {
+        const whipDiff = Math.abs(awayWhip - homeWhip);
         if (side === awayTeam && awayWhip < homeWhip) {
           reasons.push(`Better WHIP: ${awayPitcher.name} (${awayWhip})`);
         } else if (side === homeTeam && homeWhip < awayWhip) {
           reasons.push(`Better WHIP: ${homePitcher.name} (${homeWhip})`);
+        } else if (whipDiff < 0.1) {
+          risks.push("WHIP advantage minimal - pitchers are similar");
         }
       }
     }
